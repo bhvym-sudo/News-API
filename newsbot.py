@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import re
 import json
 
+
+##INTERNATIONAL RESOURCES
 def fetch_rss_bbc():
     feed_url = "http://feeds.bbci.co.uk/news/rss.xml"
     feed = feedparser.parse(feed_url)
@@ -103,35 +105,57 @@ def get_rusuk_cnn():
     fil = [item for item in data if item]
     return fil
 
-def search_cnn():
-    d = input("Enter your query: ").strip()
-    forr = "+".join(d.split())
-    
-    r = requests.get(f"https://www.bbc.com/search?q={forr}&edgeauth=eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJrZXkiOiAiZmFzdGx5LXVyaS10b2tlbi0xIiwiZXhwIjogMTczODM1MDI0MSwibmJmIjogMTczODM0OTg4MSwicmVxdWVzdHVyaSI6ICIlMkZzZWFyY2glM0ZxJTNEZWR3YXJkJTI1MjBzbm93ZGVuIn0.pL1mcrv5_-McqDWjEqpFx-5yyBwMbbmZknW0A0Ypi8E")
+
+
+
+##INTERNATIONAL SEARCH RESOURCES
+def search_cnn(query):
+    forr = "+".join(query.split())
+    url = f"https://www.bbc.com/search?q={forr}"
+    r = requests.get(url)
     soup = BeautifulSoup(r.content, "html.parser")
     df = soup.find_all("div", class_="sc-c6f6255e-0 eGcloy")
-    dta = []
-    for elements in df:
-        dta.append(elements.text)
-
+    dta = [elements.text for elements in df]
 
     pattern = re.compile(r'(.+?)(\d{1,2} \w+ \d{4}|\d+ day[s]? ago)([A-Za-z &]+)?$')
+    results = []
 
     for article in dta:
         match = pattern.search(article)
         if match:
             content = match.group(1).strip().rstrip('.')
             date = match.group(2).strip()
-            location = match.group(3).strip() if match.group(3) else "N/A"  # Handle missing location
-            print(f"Content: {content}\nDate: {date}\nLocation: {location}\n")
-        else:
-            print(f"❌ Failed to match: {article}\n")
+            location = match.group(3).strip() if match.group(3) else "N/A"
+            results.append({"content": content, "date": date, "location": location})
+
+    return results
+
+def search_abcnews(query):
+
+    data = {
+           
+    "limit": 10,
+    "sort": "date",
+    "type": "",
+    "section": "",
+    "totalrecords": "true",
+    "offset": 0,
+    "q": query
+
+    }
+
+    r = requests.get("https://abcnews.go.com/meta/api/search", params=data)
+
+    return r.json()
 
 
+
+
+##INDIAN RESOURCES
 def search_timeofindia():
     d = input("Enter your query: ").strip()
     forr = "-".join(d.split())
-    r = requests.get(f'https://toifeeds.indiatimes.com/treact/feeds/toi/web/show/topic?path=/topic/{forr}/news&row=20 &curpg=1')
+    r = requests.get(f'https://toifeeds.indiatimes.com/treact/feeds/toi/web/show/topic?path=/topic/{forr}/news&row=20&curpg=1')
     data = r.json()
     total_count = data['contentsData']['totalcount']
     print(total_count)
@@ -139,9 +163,11 @@ def search_timeofindia():
     for item in items:
         hl = item.get('hl', 'N/A')
         syn = item.get('syn', 'N/A')
-        print(hl)
-        print(syn)
+        print(re.sub(r'</?i[^>]*>', '', hl))
+        print(re.sub(r'</?i[^>]*>', '', syn))
         print()
+
+
 
 
 
