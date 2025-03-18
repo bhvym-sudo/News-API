@@ -50,4 +50,4 @@ def search():
     return render_template('search.html', query=None, cnn_results=None, abc_results=None)
 
 if __name__ == "__main__":
-    app.run("0.0.0.0",debug=True)
+    app.run("10.12.111.246",debug=True)
